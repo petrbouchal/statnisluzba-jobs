@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+
+/.quarto/
+
+# Local Netlify folder
+.netlify
+docs
+data-export
+data-input/cis_*.csv

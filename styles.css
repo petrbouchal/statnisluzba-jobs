@@ -1,0 +1,40 @@
+/* css styles */
+
+.lg {
+  font-weight: bold;
+  color: white;
+  padding: 3px;
+  margin-top: 0px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background-color: grey;
+  line-height: 22pt;
+}
+
+.anal {
+  background-color: #8B008B;
+}
+
+.monit {
+  background-color: #EE7600;
+}
+
+.hodnoc {
+  background-color: #006400;
+}
+
+.strat {
+  background-color: #CD0000;
+}
+
+.vyzk {
+  background-color: #00008B;
+}
+
+.stat {
+  background-color: #4876FF;
+}
+
+.legend-box {
+  padding: 10px 0px 0px 0px;
+}

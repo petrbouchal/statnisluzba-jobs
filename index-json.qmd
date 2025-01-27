@@ -1,0 +1,33 @@
+---
+title: "index-json"
+editor: visual
+execute: 
+  echo: false
+---
+
+```{ojs}
+jbs = FileAttachment("data-export/app_jobs.csv").csv()
+```
+
+```{ojs}
+viewof jbst = Inputs.table(jbs, {required: false, multiple: false, required: false, value: jbs[0]})
+```
+
+```{ojs}
+id = jbst.id_nodate
+```
+
+```{ojs}
+sim_json = "data-export/app_sims/sims__" + id + ".json"
+```
+
+```{ojs}
+x = fetch(sim_json)
+    .then((response) => response.json())
+```
+
+```{ojs}
+viewof xx = Inputs.table(x)
+```
+
+

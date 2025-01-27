@@ -1,0 +1,20 @@
+Version: 1.0
+ProjectId: 7df2a91a-4586-4f4e-b0f1-2836c8059439
+
+RestoreWorkspace: No
+SaveWorkspace: No
+AlwaysSaveHistory: Default
+
+EnableCodeIndexing: Yes
+UseSpacesForTab: Yes
+NumSpacesForTab: 2
+Encoding: UTF-8
+
+RnwWeave: knitr
+LaTeX: XeLaTeX
+
+AutoAppendNewline: Yes
+StripTrailingWhitespace: Yes
+
+BuildType: Custom
+CustomScriptPath: build.R

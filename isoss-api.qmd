@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+editor: visual
+---
+
+```{ojs}
+jsonurl = "https://portal.isoss.cz/irj/portal/anonymous/mvrest?path=/eosm-public-offer&page=1&pageSize=10"
+```
+
+
+```{ojs}
+data = fetch(jsonurl)
+  .then(response => {
+    if (!response.ok) throw new Error(response.status);
+    return response.json();
+  })
+```
+
+```{ojs}
+viewof Inputs.table(data)
+```
+
+```{ojs}
+d3.json(jsonurl)
+```
+

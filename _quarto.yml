@@ -1,0 +1,13 @@
+project:
+  type: website
+  output-dir: docs
+  resources: ["/data-export/app_sims/*", "/data-export/app_jobs.json"]
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+
