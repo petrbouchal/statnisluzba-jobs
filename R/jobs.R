@@ -266,15 +266,11 @@ sub_sims_for_app <- function(jobs_salary_sims) {
 }
 
 export_sims_for_app <- function(jobs_salary_sims_subbed) {
-  outfile_stem <- "data-export/app_sims/sims_"
-  dta <- jobs_salary_sims_subbed
-
-  fls <- lapply(unique(dta$id_nodate), \(x) {
-    dta_sub <- dta[dta$id_nodate == x,]
-    outfile <- paste0(outfile_stem, "_", x, ".json")
-    write_json(dta_sub, outfile)
-    return(outfile)
-  })
-  return(as.character(fls))
+  id <- unique(jobs_salary_sims_subbed$id_nodate)
+  outdir <- "data-export/app_sims"
+  dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+  outfile <- file.path(outdir, paste0("sims__", id, ".json"))
+  write_json(jobs_salary_sims_subbed, outfile)
+  outfile
 }
 

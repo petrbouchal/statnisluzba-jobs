@@ -108,10 +108,10 @@ write_app_data_json <- function(jobs_enriched_app, job_pay) {
   outfile
 }
 
-sync_sims_to_docs <- function(sims_paths) {
+sync_sim_to_docs <- function(sims_path) {
   dest_dir <- "docs/jobs/data-export/app_sims"
   dir.create(dest_dir, showWarnings = FALSE, recursive = TRUE)
-  dests <- file.path(dest_dir, basename(sims_paths))
-  file.copy(sims_paths, dests, overwrite = TRUE)
-  dests
+  dest <- file.path(dest_dir, basename(sims_path))
+  file.copy(sims_path, dest, overwrite = TRUE)
+  dest
 }

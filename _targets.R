@@ -129,7 +129,9 @@ t_jobs <- list(
 # Export ------------------------------------------------------------------
 
 t_export <- list(
-  tar_file(app_sims, export_sims_for_app(jobs_salary_sims_subbed)),
+  tar_group_by(jobs_salary_sims_grouped, jobs_salary_sims_subbed, id_nodate),
+  tar_file(app_sims, export_sims_for_app(jobs_salary_sims_grouped),
+           pattern = map(jobs_salary_sims_grouped)),
   tar_file(app_jobs, export_jobs_for_app(jobs_uniq_subbed))
 )
 
@@ -154,14 +156,15 @@ t_app <- list(
              enrich_jobs_for_app(jobs_uniq_subbed, jobs_parquet_app, uzemi_app, cis_obory)),
 
   tar_target(job_pay,
-             furrr::future_map_dfr(app_sims, ~compute_pay_arrays(.x, jobs_enriched_app),
-                                   .options = furrr::furrr_options(seed = NULL))),
+             compute_pay_arrays(app_sims, jobs_enriched_app),
+             pattern = map(app_sims)),
 
   tar_file(app_data_json,
            write_app_data_json(jobs_enriched_app, job_pay)),
 
   tar_file(app_sims_doc,
-           sync_sims_to_docs(app_sims))
+           sync_sim_to_docs(app_sims),
+           pattern = map(app_sims))
 )
 
 
