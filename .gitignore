@@ -8,6 +8,8 @@
 
 # Local Netlify folder
 .netlify
+
 docs
 data-export
 data-input/cis_*.csv
+node_modules

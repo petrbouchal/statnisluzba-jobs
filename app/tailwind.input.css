@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@source "./docs/jobs/index.html";
+
+@theme {
+  --color-gov: #2B5DAA;
+  --color-gov-dark: #16386B;
+  --color-gov-deeper: #0D2347;
+  --color-gov-muted: #5E8FCB;
+  --color-gov-light: #EBF2FB;
+  --color-gov-border: #C2D7EF;
+  --font-family-sans: 'Nunito Sans', system-ui, sans-serif;
+}
