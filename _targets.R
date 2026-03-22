@@ -19,7 +19,7 @@ conflicted::conflict_prefer("lag", "dplyr", quiet = TRUE)
 # Set target-specific options such as packages.
 tar_option_set(packages = c("dplyr", "tidygraph", "statnipokladna", "here", "readxl", "xml2",
                             "janitor", "curl", "stringr", "config", "conflicted",
-                            "tidyr","ragg", "magrittr", "tibble",
+                            "tidyr","ragg", "magrittr", "tibble", "quarto",
                             "furrr", "ggraph", "purrr", "jsonlite", "glue",
                             "lubridate", "writexl", "readr", "ptrr",
                             "pointblank", "tarchetypes", "forcats", "ggplot2"),
@@ -59,8 +59,12 @@ t_tarify <- list(
                 load_tarify(!!.x, 2023)),
   tar_target(tarify_2024, tarify_2023 |> mutate(rok = 2024)),
   tar_target(tarify_2025, tarify_2023 |> mutate(rok = 2025)),
+  # NV 16/2026 Sb. – +9 % od dubna 2026 (platí pro státní zaměstnance dle NV 304/2014)
+  tar_file_read(tarify_2026,
+                "data-input/tarify/tarify_2026_od_dubna.csv",
+                load_tarify_csv(!!.x, 2026)),
   tar_target(tarify, compile_tarify(tarify_2021, tarify_2022, tarify_2023,
-                                    tarify_2024, tarify_2025))
+                                    tarify_2024, tarify_2025, tarify_2026))
 )
 
 ## Číselníky ISoSS ---------------------------------------------------------

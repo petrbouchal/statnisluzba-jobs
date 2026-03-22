@@ -15,3 +15,12 @@ load_tarify <- function(file, rok) {
                 "praxe_do_nad", "praxe_let")) |> mutate(rok = rok)
 }
 
+load_tarify_csv <- function(file, rok) {
+  read_csv(file, col_types = cols(
+    stupen       = col_integer(),
+    praxe_do_nad = col_character(),
+    praxe_let    = col_integer(),
+    .default     = col_double()
+  )) |> mutate(rok = rok)
+}
+

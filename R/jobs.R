@@ -79,6 +79,27 @@ process_jobs <- function(jobs_raw, urady_roztridene, cis_predstaveni) {
            latest_file = file == max(file),
            aktualni = nabidka_platna_do >= Sys.Date())
 
+  # Impute management role from title when not flagged in source data
+  predst_lookup <- cis_predstaveni |>
+    arrange(desc(do)) |>
+    distinct(predstaveny, .keep_all = TRUE)
+  predst_name <- function(code) predst_lookup$predstaveny_nazev[match(code, predst_lookup$predstaveny)]
+
+  jbs <- jbs |>
+    mutate(
+      imputed_code = case_when(
+        is_predstaveny                                        ~ NA_character_,
+        str_detect(tolower(nazev), "vedouc\u00ed odd\u011blen\u00ed") ~ "515",
+        str_detect(tolower(nazev), "\u0159editel\\/?(ka)? odboru")    ~ "525",
+        str_detect(tolower(nazev), "\u0159editel\\/?(ka)? sekce")     ~ "534",
+        .default = NA_character_
+      ),
+      predstaveny       = coalesce(as.character(predstaveny), imputed_code),
+      predstaveny_nazev = if_else(!is.na(imputed_code), predst_name(imputed_code), predstaveny_nazev),
+      is_predstaveny    = is_predstaveny | !is.na(imputed_code)
+    ) |>
+    select(-imputed_code)
+
   return(jbs)
 }
 
@@ -132,11 +153,11 @@ simulate_salaries <- function(jobs_uniq, tarify, priplatky_vedeni) {
            pay_nokey_noexpert_typicallower = if_else(is.na(predstaveny), tarif + tarif_max * 0.14, tarif + tarif_max * 0.17), # dobré hodnocení, střední hodnota typu org
            pay_nokey_noexpert_typicalmid = if_else(is.na(predstaveny), tarif + tarif_max * 0.20, tarif + tarif_max * 0.26), # mezi vynikajícím a velmi dobrým, střední hodnota typu org
            pay_nokey_noexpert_typicalmax = if_else(is.na(predstaveny), tarif + tarif_max * 0.24, tarif + tarif_max * 0.30), # mezi vynikajícím a velmi dobrým, střední hodnota typu org
-           pay_nokey_noexpert_max = tarif + tarif_max * 0.5,
+           pay_nokey_noexpert_max = tarif + tarif_max,
            pay_nokey_expert_typicalmid = if_else(is.na(predstaveny), tarif + tarif_max * 0.52, tarif + tarif_max * 0.54), # expart, střední hodnota org
            pay_nokey_expert_max = tarif + tarif_max, # vynikající, max
            pay_key_noexpert_maxmultminosobko = tarif * 2, # max osobka
-           pay_key_noexpert_maxmultmaxosobko = tarif * 2 + tarif_max * 0.5, # max osobka
+           pay_key_noexpert_maxmultmaxosobko = tarif * 2 + tarif_max, # klíčové: tarif×2 + osobní příplatek až 100 % tarif_max
            pay_key_expert_max = tarif * 2 + tarif_max,
            vedeni_max = case_match(urad_kategorie_priplatek,
                                    "ustredni" ~ tarif_max * usu_max / 100,
@@ -153,14 +174,31 @@ simulate_salaries <- function(jobs_uniq, tarify, priplatky_vedeni) {
 
            ),
     ) |>
-    replace_na(list(vedeni_max = 0, vedeni_min = 0)) |>
+    mutate(
+      # Non-management: supplement is always 0.
+      # Management with known institution category: use the case_match value.
+      # Management with unknown category: fall back to "ostatni" bracket —
+      #   the supplement is legally mandatory so can never be zero.
+      vedeni_min = case_when(
+        is.na(predstaveny) ~ 0,
+        !is.na(vedeni_min) ~ vedeni_min,
+        !is.na(osu_min)    ~ tarif_max * osu_min / 100,
+        TRUE               ~ 0
+      ),
+      vedeni_max = case_when(
+        is.na(predstaveny) ~ 0,
+        !is.na(vedeni_max) ~ vedeni_max,
+        !is.na(osu_max)    ~ tarif_max * osu_max / 100,
+        TRUE               ~ 0
+      )
+    ) |>
     mutate(across(starts_with("pay_"), \(x) x + vedeni_min, .names = "min_{.col}"),
            across(starts_with("pay_"), \(x) x + vedeni_max, .names = "max_{.col}"),
            is_predstaveny = !is.na(predstaveny))
 
   pay_sim_data <- pay_simulations |>
     select(id_nodate, is_predstaveny, contains("_pay_"), stupen, praxe_do,
-           klicove_priznak, klicove_lze) |>
+           tarif, klicove_priznak, klicove_lze) |>
     pivot_longer(contains("_pay_")) |>
     separate(name, into = c("ved", "pay", "key", "expert", "range")) |>
     select(-pay) |>
@@ -192,6 +230,8 @@ sub_jobs_for_app <- function(jobs_uniq) {
            klicove_lze,
            predstaveny_nazev,
            predstaveny,
+           nabidka_platna_do,
+           odkaz = informace_zdroj_externi_odkaz,
            id_nodate)
 
   return(dta)
@@ -212,6 +252,7 @@ sub_sims_for_app <- function(jobs_salary_sims) {
       key,
       praxe_do,
       ved,
+      tarif,
       min,
       typicallower,
       typicalmid,
