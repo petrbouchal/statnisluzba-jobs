@@ -3,7 +3,7 @@ library(tarchetypes)
 library(crew)
 
 tar_option_set(
-  controller = crew_controller_local(workers = 8)
+  controller = crew_controller_local(workers = max(1, parallel::detectCores() - 1))
 )
 
 # Config ------------------------------------------------------------------
@@ -134,4 +134,35 @@ t_export <- list(
 )
 
 
-list(t_tarify, t_export, t_jobs, t_ciselniky)
+# App data ----------------------------------------------------------------
+
+t_app <- list(
+  tar_target(uzemi_app,
+             czso::czso_get_table("struktura_uzemi_cr") |>
+               dplyr::select(obec_kod, obec_text, okres_text, kraj_text) |>
+               dplyr::distinct(obec_kod, .keep_all = TRUE),
+             packages = "czso"),
+
+  tar_file_read(jobs_parquet_app,
+                "data-export/jobs_all.parquet",
+                arrow::read_parquet(!!.x) |>
+                  dplyr::select(id_nodate, adresa_pracoviste, sluzba_obor, urad_kategorie_osobko) |>
+                  dplyr::group_by(id_nodate) |> dplyr::slice_head(n = 1) |> dplyr::ungroup(),
+                packages = "arrow"),
+
+  tar_target(jobs_enriched_app,
+             enrich_jobs_for_app(jobs_uniq_subbed, jobs_parquet_app, uzemi_app, cis_obory)),
+
+  tar_target(job_pay,
+             furrr::future_map_dfr(app_sims, ~compute_pay_arrays(.x, jobs_enriched_app),
+                                   .options = furrr::furrr_options(seed = NULL))),
+
+  tar_file(app_data_json,
+           write_app_data_json(jobs_enriched_app, job_pay)),
+
+  tar_file(app_sims_doc,
+           sync_sims_to_docs(app_sims))
+)
+
+
+list(t_tarify, t_export, t_jobs, t_ciselniky, t_app)

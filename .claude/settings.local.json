@@ -71,7 +71,8 @@
       "Bash(npx tailwindcss@4 -i tailwind.input.css -o docs/jobs/tailwind.css --minify)",
       "Bash(npx --version)",
       "Bash(node_modules/.bin/tailwindcss -i tailwind.input.css -o docs/jobs/tailwind.css --minify)",
-      "WebFetch(domain:127.0.0.1)"
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(Rscript -e \"source\\('R/app_data.R'\\); cat\\('OK\\\\n'\\)\" 2>&1)"
     ]
   }
 }
