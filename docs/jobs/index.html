@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volná místa ve státní službě</title>
+  <link rel="icon" type="image/jpeg" href="favicon.jpg">
+  <link rel="stylesheet" href="tailwind.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Nunito Sans';
+      font-style: normal;
+      font-weight: 400 800;
+      font-display: swap;
+      src: url('fonts/nunito-sans-latin-ext.woff2') format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+      font-family: 'Nunito Sans';
+      font-style: normal;
+      font-weight: 400 800;
+      font-display: swap;
+      src: url('fonts/nunito-sans-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    html, body { overflow-x: hidden; }
+    body { font-family:'Nunito Sans',system-ui,sans-serif; }
+    [x-cloak] { display: none !important; }
+    body.modal-open { overflow: hidden; }
+
+    .pay-track { position:relative; height:7px; background:#e2e8f0; border-radius:99px; overflow:visible; }
+    .pay-seg   { position:absolute; top:0; height:7px; border-radius:99px; }
+
+    .sc-track { position:relative; height:18px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+    .sc-fill  { position:absolute; top:0; height:100%; border-radius:4px; transition: width .25s, left .25s; }
+
+    .job-card { transition: box-shadow .15s, transform .12s; }
+    .job-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.10); transform:translateY(-1px); }
+
+    /* Grade badge colours — cool to warm */
+    .tb-1,.tb-2,.tb-3    { background:#f1f5f9; color:#475569; }
+    .tb-4,.tb-5,.tb-6    { background:#e0f2fe; color:#0369a1; }
+    .tb-7,.tb-8,.tb-9    { background:#dbeafe; color:#1e40af; }
+    .tb-10,.tb-11,.tb-12 { background:#ede9fe; color:#5b21b6; }
+    .tb-13,.tb-14        { background:#fce7f3; color:#9d174d; }
+    .tb-15,.tb-16        { background:#fef3c7; color:#92400e; }
+
+    /* Multi-choice picker */
+    .picker-wrap { position:relative; }
+    .picker-trigger {
+      width:100%; border:1px solid #e2e8f0; border-radius:.5rem;
+      font-size:.875rem; padding:.5rem .75rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:space-between;
+      background:#fff; transition: border-color .15s;
+    }
+    .picker-trigger:hover { border-color:#93bde8; }
+    .picker-trigger.active { border-color:#2B5DAA; background:#EBF2FB; }
+    .picker-dropdown {
+      position:absolute; top:100%; left:0; right:0; z-index:60;
+      background:#fff; border:1px solid #e2e8f0; border-radius:.5rem;
+      box-shadow:0 8px 28px rgba(0,0,0,.12); max-height:300px;
+      overflow-y:auto; margin-top:3px;
+    }
+    .picker-search { padding:.5rem; position:sticky; top:0; background:#fff; border-bottom:1px solid #f1f5f9; }
+    .picker-search input { width:100%; font-size:.8125rem; padding:.375rem .5rem; border:1px solid #e2e8f0; border-radius:.375rem; outline:none; }
+    .picker-search input:focus { border-color:#93bde8; }
+    .picker-section-header { padding:.375rem .75rem .25rem; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#94a3b8; background:#f8fafc; position:sticky; top:2.5rem; }
+    .picker-opt { display:flex; align-items:center; gap:.5rem; padding:.35rem .75rem; cursor:pointer; font-size:.8125rem; }
+    .picker-opt:hover { background:#f8fafc; }
+    .picker-opt input[type=checkbox] { width:.875rem; height:.875rem; flex-shrink:0; accent-color:#2B5DAA; }
+    .picker-action { padding:.4rem .75rem; font-size:.75rem; color:#2B5DAA; cursor:pointer; border-top:1px solid #f1f5f9; }
+    .picker-action:hover { background:#EBF2FB; }
+
+    @media (max-width: 639px) { .job-counter { display: none !important; } }
+
+    /* Experience slider */
+    input[type=range] {
+      -webkit-appearance:none; appearance:none; width:100%; height:4px;
+      border-radius:99px; background:#e2e8f0; outline:none; cursor:pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+      background:#2B5DAA; cursor:pointer; box-shadow:0 0 0 3px rgba(43,93,170,.18);
+    }
+    input[type=range]::-moz-range-thumb {
+      width:16px; height:16px; border-radius:50%; background:#2B5DAA;
+      cursor:pointer; border:none; box-shadow:0 0 0 3px rgba(43,93,170,.18);
+    }
+
+    /* Chips */
+    .chip {
+      display:inline-flex; align-items:center; gap:.2rem;
+      padding:.15rem .5rem; border-radius:99px;
+      font-size:.75rem; font-weight:500; line-height:1.4;
+    }
+    .chip-btn { line-height:1; cursor:pointer; opacity:.6; }
+    .chip-btn:hover { opacity:1; }
+
+    /* Praxe slider: own row on narrow screens */
+    .slider-row { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .75rem; order:1; width:100%; justify-content:center; min-width:0; }
+    .slider-label { width:100%; text-align:center; }
+    @media (min-width:640px) {
+      .slider-row { flex:1; width:auto; order:0; flex-wrap:nowrap; }
+      .slider-label { width:auto; }
+    }
+
+    /* Job card two-column layout */
+    .job-card-body { display:flex; flex-direction:column; gap:1.25rem; }
+    .pay-col { border-top:1px solid #f1f5f9; padding-top:1rem; }
+    @media (min-width:640px) {
+      .job-card-body { flex-direction:row; }
+      .pay-col { border-top:none; border-left:1px solid #f1f5f9; padding-top:0; padding-left:1.25rem; }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased" x-data="jobsApp()" x-init="init()" x-cloak>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header style="background:#0C1838;" class="text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
+    <img src="https://pracujprostat.cz/assets/logo-statni-sluzba-white-BQy9nDVA.svg"
+         alt="Práce ve státní službě" style="height:80px;width:auto;" />
+    <div class="job-counter text-sm text-white/50 shrink-0 ml-auto" x-show="!loading && !error">
+      <span class="font-semibold text-white" x-text="jobs.length.toLocaleString('cs-CZ')"></span> volných míst
+    </div>
+  </div>
+</header>
+<div class="flex items-center justify-center gap-2 text-white text-sm font-semibold px-4 py-2.5" style="background:#d97706">
+  <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+  </svg>
+  <span>Neveřejný prototyp: platové údaje mohou být nepřesné a seznam pozic neaktuální.</span>
+</div>
+
+<!-- ═══ LOADING / ERROR ══════════════════════════════════════════════════════ -->
+<div x-show="loading" class="flex items-center justify-center py-32 text-slate-500">
+  <svg class="animate-spin h-8 w-8 mr-3 text-gov" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+  </svg>
+  Načítám data…
+</div>
+<div x-show="error && !loading" class="max-w-xl mx-auto mt-16 p-6 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
+  <strong>Chyba při načítání dat:</strong> <span x-text="error"></span>
+</div>
+
+<!-- ═══ MAIN APP ═════════════════════════════════════════════════════════════ -->
+<main x-show="!loading && !error" class="max-w-7xl mx-auto px-4 py-6">
+
+  <h1 class="text-3xl font-extrabold text-slate-900 mb-4">Kariéra ve státní správě</h1>
+
+  <!-- ─── FILTER PANEL ──────────────────────────────────────────────────── -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 space-y-4">
+
+    <!-- Search -->
+    <div class="relative">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+      <input x-model.debounce.300ms="filters.search" @input="resetPage()"
+        type="search" placeholder="Hledejte pozici, odbor nebo úřad…"
+        class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-gov text-sm"/>
+    </div>
+
+    <!-- Pickers row: Org, Místo práce, Obor -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+      <!-- ── Org picker ──────────────────────────────────────────────────── -->
+      <div x-data="{ open:false, search:'' }" @click.outside="open=false" class="picker-wrap">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Úřad / ministerstvo</label>
+        <div class="picker-trigger" :class="filters.urady.length&&'active'" @click="open=!open">
+          <span x-show="!filters.urady.length" class="text-slate-400">Všechny úřady</span>
+          <span x-show="filters.urady.length" class="text-gov font-semibold truncate"
+            x-text="filters.urady.length===1 ? filters.urady[0] : filters.urady.length+' úřady'"></span>
+          <svg class="h-4 w-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="open&&'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div x-show="open" x-cloak class="picker-dropdown">
+          <div class="picker-search"><input x-model="search" @click.stop type="text" placeholder="Hledat úřad…" autofocus/></div>
+          <!-- Všechna ministerstva shortcut -->
+          <div class="picker-action" @click.stop="selectAllMinistries(); open=false">
+            + Vybrat všechna ministerstva
+          </div>
+          <template x-for="u in availableUrady.filter(u=>!search||u.name.toLowerCase().includes(search.toLowerCase()))" :key="u.name">
+            <label class="picker-opt">
+              <input type="checkbox" :value="u.name" x-model="filters.urady" @change="resetPage()"/>
+              <span x-text="u.name" class="flex-1 truncate"></span>
+              <span x-text="u.count" class="text-slate-400 text-xs shrink-0"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- ── Místo práce picker (Kraj / Okres / Obec) ───────────────────── -->
+      <div x-data="{ open:false, search:'' }" @click.outside="open=false" class="picker-wrap">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Místo práce</label>
+        <div class="picker-trigger" :class="filters.mista.length&&'active'" @click="open=!open">
+          <span x-show="!filters.mista.length" class="text-slate-400">Celá ČR</span>
+          <span x-show="filters.mista.length" class="text-gov font-semibold truncate"
+            x-text="filters.mista.length===1 ? mistaLabel(filters.mista[0]) : filters.mista.length+' místa'"></span>
+          <svg class="h-4 w-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="open&&'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div x-show="open" x-cloak class="picker-dropdown">
+          <div class="picker-search"><input x-model="search" @click.stop type="text" placeholder="Hledat kraj, okres nebo obec…" autofocus/></div>
+
+          <!-- Kraje section -->
+          <template x-if="availableMista.kraje.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase())).length">
+            <div>
+              <div class="picker-section-header">Kraj</div>
+              <template x-for="k in availableMista.kraje.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase()))" :key="k.id">
+                <label class="picker-opt">
+                  <input type="checkbox" :value="k.id" x-model="filters.mista" @change="resetPage()"/>
+                  <span x-text="k.name" class="flex-1 truncate"></span>
+                  <span x-text="k.count" class="text-slate-400 text-xs shrink-0"></span>
+                </label>
+              </template>
+            </div>
+          </template>
+
+          <!-- Okresy section -->
+          <template x-if="availableMista.okresy.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase())).length">
+            <div>
+              <div class="picker-section-header">Okres</div>
+              <template x-for="k in availableMista.okresy.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase()))" :key="k.id">
+                <label class="picker-opt">
+                  <input type="checkbox" :value="k.id" x-model="filters.mista" @change="resetPage()"/>
+                  <span x-text="k.name" class="flex-1 truncate"></span>
+                  <span x-text="k.count" class="text-slate-400 text-xs shrink-0"></span>
+                </label>
+              </template>
+            </div>
+          </template>
+
+          <!-- Obce section -->
+          <template x-if="availableMista.obce.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase())).length">
+            <div>
+              <div class="picker-section-header">Obec</div>
+              <template x-for="k in availableMista.obce.filter(k=>!search||k.name.toLowerCase().includes(search.toLowerCase()))" :key="k.id">
+                <label class="picker-opt">
+                  <input type="checkbox" :value="k.id" x-model="filters.mista" @change="resetPage()"/>
+                  <span x-text="k.name" class="flex-1 truncate"></span>
+                  <span x-text="k.count" class="text-slate-400 text-xs shrink-0"></span>
+                </label>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- ── Obor picker ─────────────────────────────────────────────────── -->
+      <div x-data="{ open:false, search:'' }" @click.outside="open=false" class="picker-wrap">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Obor služby</label>
+        <div class="picker-trigger" :class="filters.obory.length&&'active'" @click="open=!open">
+          <span x-show="!filters.obory.length" class="text-slate-400">Všechny obory</span>
+          <span x-show="filters.obory.length" class="text-gov font-semibold truncate"
+            x-text="filters.obory.length===1 ? oborName(filters.obory[0]) : filters.obory.length+' obory'"></span>
+          <svg class="h-4 w-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="open&&'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div x-show="open" x-cloak class="picker-dropdown">
+          <div class="picker-search"><input x-model="search" @click.stop type="text" placeholder="Hledat obor…" autofocus/></div>
+          <template x-for="o in availableObory.filter(o=>!search||o.name.toLowerCase().includes(search.toLowerCase()))" :key="o.id">
+            <label class="picker-opt">
+              <input type="checkbox" :value="o.id" x-model="filters.obory" @change="resetPage()"/>
+              <span x-text="o.name" class="flex-1 truncate"></span>
+              <span x-text="o.count" class="text-slate-400 text-xs shrink-0"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row: Skupina úřadů | Úroveň řízení + Třída | Filtr ─────────── -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+      <!-- Skupina úřadů picker -->
+      <div x-data="{ open:false }" @click.outside="open=false" class="picker-wrap">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Skupina úřadů</label>
+        <div class="picker-trigger" :class="filters.skupinyUradu.length&&'active'" @click="open=!open">
+          <span x-show="!filters.skupinyUradu.length" class="text-slate-400">Všechny skupiny</span>
+          <span x-show="filters.skupinyUradu.length" class="text-gov font-semibold truncate"
+            x-text="filters.skupinyUradu.length===1
+              ? ([...SKUPINY_DEF,...RESORTY_DEF].find(s=>s.id===filters.skupinyUradu[0])?.label||filters.skupinyUradu[0])
+              : filters.skupinyUradu.length+' skupiny'"></span>
+          <svg class="h-4 w-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="open&&'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div x-show="open" x-cloak class="picker-dropdown" style="max-height:26rem">
+          <div class="picker-section-header" style="top:0">Skupiny úřadů</div>
+          <template x-for="s in availableSkupiny" :key="s.id">
+            <label class="picker-opt">
+              <input type="checkbox" :value="s.id" x-model="filters.skupinyUradu" @change="resetPage()"/>
+              <span x-text="s.label" class="flex-1 truncate"></span>
+              <span x-text="s.count" class="text-slate-400 text-xs shrink-0"></span>
+            </label>
+          </template>
+          <div class="picker-section-header" style="top:0">Resorty (rozpočtové kapitoly)</div>
+          <template x-for="s in availableResorty" :key="s.id">
+            <label class="picker-opt">
+              <input type="checkbox" :value="s.id" x-model="filters.skupinyUradu" @change="resetPage()"/>
+              <span x-text="s.label" class="flex-1 truncate"></span>
+              <span x-text="s.count" class="text-slate-400 text-xs shrink-0"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- Úroveň řízení + Třída (split middle cell) -->
+      <div class="grid grid-cols-2 gap-3">
+
+        <div x-data="{ open:false }" @click.outside="open=false" class="picker-wrap">
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Úroveň řízení</label>
+          <div class="picker-trigger" :class="filters.vedeniLevels.length&&'active'" @click="open=!open">
+            <span x-show="!filters.vedeniLevels.length" class="text-slate-400">Všechny</span>
+            <span x-show="filters.vedeniLevels.length" class="text-gov font-semibold truncate"
+              x-text="filters.vedeniLevels.length===1
+                ? (MGMT_LEVELS.find(l=>l.code===filters.vedeniLevels[0])?.label||filters.vedeniLevels[0])
+                : filters.vedeniLevels.length+' úrovně'"></span>
+            <svg class="h-4 w-4 text-slate-400 shrink-0 ml-1 transition-transform" :class="open&&'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <div x-show="open" x-cloak class="picker-dropdown">
+            <template x-for="lvl in MGMT_LEVELS" :key="lvl.code">
+              <label class="picker-opt">
+                <input type="checkbox" :value="lvl.code" x-model="filters.vedeniLevels" @change="resetPage()"/>
+                <span x-text="lvl.label" class="flex-1"></span>
+              </label>
+            </template>
+            <div class="px-3 py-1.5 text-xs text-slate-400">Nevybráno = vše</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-1">Platová třída</label>
+          <div class="flex items-center gap-2 mt-2">
+            <input x-model.number="filters.tridasMin" @input="resetPage()" type="number" min="1" max="16"
+              class="w-14 rounded border border-slate-300 text-sm py-1 px-1.5 text-center focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+            <span class="text-slate-400 text-xs">–</span>
+            <input x-model.number="filters.tridasMax" @input="resetPage()" type="number" min="1" max="16"
+              class="w-14 rounded border border-slate-300 text-sm py-1 px-1.5 text-center focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Filtr checkboxes -->
+      <div>
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-2">Filtr</label>
+        <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" x-model="filters.onlyAktualni" @change="resetPage()"
+              class="rounded border-slate-400 text-gov w-4 h-4"/>
+            <span class="text-sm text-slate-700">Pouze aktuálně volná</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" x-model="filters.onlyKlicove" @change="resetPage()"
+              class="rounded border-slate-400 text-amber-500 w-4 h-4"/>
+            <span class="text-sm text-slate-700">Pouze klíčová místa</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active filter chips -->
+    <div x-show="filters.urady.length||filters.mista.length||filters.obory.length||filters.skupinyUradu.length||filters.vedeniLevels.length" class="flex flex-wrap gap-1.5">
+      <template x-for="u in filters.urady" :key="'u_'+u">
+        <span class="chip" style="background:#EBF2FB;color:#16386B;">
+          <span x-text="u"></span>
+          <button class="chip-btn" @click="filters.urady=filters.urady.filter(x=>x!==u);resetPage()">×</button>
+        </span>
+      </template>
+      <template x-for="m in filters.mista" :key="'m_'+m">
+        <span class="chip" style="background:#ecfdf5;color:#065f46;">
+          <span class="opacity-60 text-xs" x-text="mistaTypeLabel(m)+':'"></span>
+          <span x-text="mistaLabel(m)"></span>
+          <button class="chip-btn" @click="filters.mista=filters.mista.filter(x=>x!==m);resetPage()">×</button>
+        </span>
+      </template>
+      <template x-for="o in filters.obory" :key="'o_'+o">
+        <span class="chip" style="background:#f0f4ff;color:#16386B;">
+          <span x-text="oborName(o)"></span>
+          <button class="chip-btn" @click="filters.obory=filters.obory.filter(x=>x!==o);resetPage()">×</button>
+        </span>
+      </template>
+      <template x-for="s in filters.skupinyUradu" :key="'sk_'+s">
+        <span class="chip" style="background:#fff7ed;color:#c2410c;">
+          <span x-text="([...SKUPINY_DEF,...RESORTY_DEF].find(x=>x.id===s)?.label||s)"></span>
+          <button class="chip-btn" @click="filters.skupinyUradu=filters.skupinyUradu.filter(x=>x!==s);resetPage()">×</button>
+        </span>
+      </template>
+      <template x-for="v in filters.vedeniLevels" :key="'v_'+v">
+        <span class="chip" style="background:#eef2ff;color:#4338ca;">
+          <span x-text="(MGMT_LEVELS.find(l=>l.code===v)?.label||v)"></span>
+          <button class="chip-btn" @click="filters.vedeniLevels=filters.vedeniLevels.filter(x=>x!==v);resetPage()">×</button>
+        </span>
+      </template>
+    </div>
+
+    <!-- Results summary + Praxe slider + Sort -->
+    <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100">
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="text-sm text-slate-500">
+          <strong class="text-slate-800" x-text="filteredJobs.length.toLocaleString('cs-CZ')"></strong> míst
+          <span x-show="filteredJobs.length!==jobs.length" x-text="' (z '+jobs.length.toLocaleString('cs-CZ')+' celkem)'"></span>
+        </div>
+        <button @click="resetFilters()" class="text-xs text-slate-400 hover:text-gov">Zrušit filtry</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label text-xs text-slate-400">Praxe pro zpřesnění odhadu platu (neomezuje výběr):</span>
+        <input type="range" min="0" :max="PRAXE_STEPS.length-1" step="1" x-model.number="praxeIdx" style="width:12rem;" class="shrink-0"/>
+        <span class="text-xs font-semibold text-gov-dark whitespace-nowrap shrink-0" style="min-width:5.5rem;text-align:right" x-text="PRAXE_LABELS[praxeIdx]"></span>
+      </div>
+      <div class="flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
+        <span class="hidden sm:inline">Řadit:</span>
+        <select x-model="sortKey" @change="resetPage()"
+          class="rounded border border-slate-200 text-xs py-1 px-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 text-slate-600">
+          <option value="pay_desc">Plat ↓</option>
+          <option value="pay_asc">Plat ↑</option>
+          <option value="trida_desc">Třída ↓</option>
+          <option value="trida_asc">Třída ↑</option>
+          <option value="urad">Úřad A–Z</option>
+          <option value="nazev">Název A–Z</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── JOB GRID ──────────────────────────────────────────────────────── -->
+  <div x-show="filteredJobs.length===0" class="text-center py-20 text-slate-500">
+    <svg class="mx-auto h-12 w-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <p class="font-medium">Žádná místa nenalezena</p>
+    <p class="text-sm mt-1">Zkuste upravit nebo zrušit filtry</p>
+  </div>
+
+  <div class="max-w-4xl mx-auto flex flex-col gap-4 mb-8" :class="filterPending&&'opacity-50 pointer-events-none'">
+    <template x-for="job in pagedJobs" :key="job.id_nodate">
+      <article class="job-card bg-white rounded-xl border border-slate-200 shadow-sm cursor-pointer p-5 job-card-body"
+        @click="openJob(job)"
+        :class="selectedJob?.id_nodate===job.id_nodate?'ring-2 ring-blue-400':''">
+
+        <!-- Left: info -->
+        <div class="flex-1 min-w-0 flex flex-col">
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="'tb-'+job.platova_trida"
+              x-text="job.platova_trida ? job.platova_trida+'. třída' : ''"></span>
+            <span x-show="job.is_predstaveny && job.predstaveny_nazev && job.predstaveny_nazev!=='není představený'"
+              class="text-xs font-medium px-2 py-0.5 rounded-md bg-white border border-slate-300 text-slate-700"
+              x-text="capFirst(job.predstaveny_nazev)"></span>
+            <span x-show="job.klicove_priznak||job.klicove_lze" class="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-700 text-white">Klíčové místo</span>
+          </div>
+          <h2 class="font-bold text-slate-900 text-xl leading-snug mb-1" x-text="jobHeading(job)"></h2>
+          <p x-show="!job.is_predstaveny || !job.predstaveny_nazev || job.predstaveny_nazev==='není představený'"
+            class="text-base text-slate-600 leading-snug mb-2" x-text="job.popis"></p>
+          <div class="mt-auto flex items-center gap-3 flex-wrap">
+            <p class="text-sm font-medium text-gov-dark truncate" x-text="job.urad_nazev"></p>
+            <p x-show="job.obec_nazev" class="text-sm text-slate-400 whitespace-nowrap shrink-0" x-text="job.obec_nazev"></p>
+            <p x-show="job.nabidka_platna_do" class="text-sm text-slate-400 whitespace-nowrap shrink-0 ml-auto"
+              x-text="'do\u00a0'+fmtDate(job.nabidka_platna_do)"></p>
+            <a x-show="job.odkaz" :href="job.odkaz" target="_blank" rel="noopener"
+              @click.stop
+              class="text-xs text-gov hover:underline whitespace-nowrap shrink-0">Celý popis pozice&nbsp;↗</a>
+          </div>
+        </div>
+
+        <!-- Right: pay viz -->
+        <div class="flex-1 flex flex-col justify-center pay-col">
+          <template x-if="cardPay(job)">
+            <div>
+              <div class="pay-track mb-1.5">
+                <div class="pay-seg bg-slate-300" :style="segStyle(0,cardPay(job).min)"></div>
+                <div class="pay-seg bg-slate-200" x-show="cardPay(job).lo>cardPay(job).min" :style="segStyle(cardPay(job).min,cardPay(job).lo)"></div>
+                <div class="pay-seg bg-gov" x-show="cardPay(job).lo!=null" :style="segStyle(cardPay(job).lo,cardPay(job).hi)"></div>
+                <div class="pay-seg bg-blue-200" x-show="cardPay(job).max>cardPay(job).hi" :style="segStyle(cardPay(job).hi,cardPay(job).max)"></div>
+              </div>
+              <div class="flex justify-between text-xs text-slate-500">
+                <span x-text="num(cardPay(job).min)"></span>
+                <span class="text-gov font-semibold" x-text="num(cardPay(job).lo)+'–'+num(cardPay(job).hi)"></span>
+                <span x-text="num(cardPay(job).max)"></span>
+              </div>
+              <div class="text-xs text-slate-400 mt-0.5 text-center">min · typické · max (Kč hrubého/měsic)</div>
+            </div>
+          </template>
+          <div x-show="!cardPay(job)" class="text-xs text-slate-400 italic text-center">Plat není k dispozici</div>
+        </div>
+      </article>
+    </template>
+  </div>
+
+  <!-- ─── PAGINATION ────────────────────────────────────────────────────── -->
+  <div x-show="totalPages>1" class="flex items-center justify-center gap-1 mb-8">
+    <button @click="goPage(currentPage-1)" :disabled="currentPage===1"
+      class="px-3 py-1.5 rounded-lg text-sm border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">‹</button>
+    <template x-for="p in pageNumbers" :key="String(p)+currentPage">
+      <button x-show="p!=='…'" @click="goPage(p)"
+        :class="p===currentPage?'bg-gov text-white border-gov':'bg-white border-slate-300 hover:bg-slate-50'"
+        class="px-3 py-1.5 rounded-lg text-sm border min-w-[2.5rem]" x-text="p"></button>
+      <span x-show="p==='…'" class="px-1 text-slate-400">…</span>
+    </template>
+    <button @click="goPage(currentPage+1)" :disabled="currentPage===totalPages"
+      class="px-3 py-1.5 rounded-lg text-sm border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">›</button>
+  </div>
+
+</main>
+
+<!-- ═══ JOB DETAIL MODAL ═════════════════════════════════════════════════════ -->
+<div x-show="selectedJob" x-cloak class="fixed inset-0 z-50" @keydown.escape.window="closeModal()">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()"></div>
+  <!-- Scroll container -->
+  <div class="fixed inset-0 overflow-y-auto">
+    <div class="flex min-h-full items-start justify-center p-2 pt-3 sm:p-4 sm:pt-6">
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-2 sm:my-4 overflow-hidden" @click.stop>
+
+    <div class="absolute top-3 right-3 flex items-center gap-1.5">
+      <button @click="copyJobLink()" class="flex items-center gap-1 text-xs font-medium rounded-full px-2.5 py-1 transition-colors"
+        :class="linkCopied ? 'bg-green-100 text-green-700' : 'text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200'">
+        <svg x-show="!linkCopied" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        <svg x-show="linkCopied" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        <span x-text="linkCopied ? 'Zkopírováno' : 'Sdílet'"></span>
+      </button>
+      <button @click="closeModal()" class="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full px-2.5 py-1 transition-colors">
+        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+        Zavřít
+      </button>
+    </div>
+
+    <div class="p-6">
+      <!-- Modal header -->
+      <div class="pr-20 mb-4">
+        <div class="flex flex-wrap gap-1.5 mb-2">
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md" :class="'tb-'+selectedJob?.platova_trida"
+            x-text="selectedJob?.platova_trida ? selectedJob.platova_trida+'. třída' : ''"></span>
+          
+          <span x-show="selectedJob?.is_predstaveny && selectedJob?.predstaveny_nazev && selectedJob?.predstaveny_nazev!=='není představený'"
+            class="text-xs font-medium px-2 py-0.5 rounded-md bg-white border border-slate-300 text-slate-700"
+            x-text="capFirst(selectedJob?.predstaveny_nazev)"></span>
+          <span x-show="selectedJob?.klicove_priznak||selectedJob?.klicove_lze" class="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-700 text-white">Klíčové místo</span>
+        </div>
+        <h2 class="text-lg font-bold text-slate-900 leading-tight" x-text="jobHeading(selectedJob)"></h2>
+        <!-- For management jobs the org unit is in the heading; show full nazev as subtitle -->
+        <p x-show="selectedJob?.is_predstaveny && selectedJob?.predstaveny_nazev && selectedJob?.predstaveny_nazev!=='není představený'"
+          class="text-sm text-slate-500 mt-0.5 italic" x-text="cleanTitle(selectedJob?.nazev)"></p>
+        <p x-show="!selectedJob?.is_predstaveny || !selectedJob?.predstaveny_nazev || selectedJob?.predstaveny_nazev==='není představený'"
+          class="text-base font-medium text-slate-700 mt-0.5" x-text="selectedJob?.popis"></p>
+        <div class="flex items-start justify-between gap-x-4 gap-y-0.5 flex-wrap mt-0.5">
+          <div class="min-w-0">
+            <p class="text-sm text-gov-dark" x-text="selectedJob?.urad_nazev"></p>
+            <p x-show="selectedJob?.obec_nazev" class="text-xs text-slate-400"
+              x-text="[selectedJob?.obec_nazev, selectedJob?.kraj_nazev].filter(Boolean).join(', ')"></p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0 flex-wrap">
+            <p x-show="selectedJob?.nabidka_platna_do" class="text-xs text-slate-400"
+              x-text="'do\u00a0'+fmtDate(selectedJob?.nabidka_platna_do)"></p>
+            <a x-show="selectedJob?.odkaz" :href="selectedJob?.odkaz" target="_blank" rel="noopener"
+              class="text-xs text-gov hover:underline" x-text="'Celý popis pozice&nbsp;\u2197'"></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service branches -->
+      <div x-show="selectedJob?.obory_nazvy?.length" class="flex flex-wrap gap-1 mb-4">
+        <template x-for="o in (selectedJob?.obory_nazvy||[])" :key="o">
+          <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600" x-text="o"></span>
+        </template>
+      </div>
+
+      <!-- Salary section -->
+      <div class="border-t border-slate-100 pt-4">
+        <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+          <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Výše platu
+        </h3>
+
+        <div x-show="simsLoading" class="text-slate-500 text-sm py-4 flex items-center gap-2">
+          <svg class="animate-spin h-4 w-4 text-gov" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>Načítám…
+        </div>
+
+        <div x-show="!simsLoading && selectedSims">
+          <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Roky praxe</label>
+              <span class="text-sm font-semibold text-gov-dark" x-text="PRAXE_LABELS[modalPraxeIdx]"></span>
+            </div>
+            <input type="range" min="0" :max="PRAXE_STEPS.length-1" step="1" x-model.number="modalPraxeIdx" class="my-1"/>
+            <div class="flex justify-between text-xs text-slate-400 mt-0.5 px-0.5"><span>Bez praxe</span><span>32+ let</span></div>
+          </div>
+
+          <div class="space-y-3" x-show="salaryScenarios.length">
+            <template x-for="sc in salaryScenarios" :key="sc.id">
+              <div>
+                <div class="flex items-center justify-between mb-1 gap-2">
+                  <span class="text-xs font-medium text-slate-700" x-text="sc.label"></span>
+                  <span class="text-xs font-bold text-slate-900 whitespace-nowrap" x-text="sc.rangeLabel"></span>
+                </div>
+                <div class="sc-track">
+                  <div class="sc-fill opacity-15" :style="'background:'+sc.color+';width:'+scPct(sc.hi)+'%'"></div>
+                  <div class="sc-fill" :style="'background:'+sc.color+';left:'+scPct(sc.lo)+'%;width:'+scPct(sc.hi-sc.lo)+'%'"></div>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5" x-text="sc.desc"></p>
+              </div>
+            </template>
+          </div>
+
+
+          <p class="text-xs text-slate-400 mt-3 italic">Hrubý měsíční plat v Kč.</p>
+        </div>
+        <div x-show="!simsLoading && !selectedSims" class="text-sm text-slate-500 italic py-2">Podrobná data o platu nejsou k dispozici.</div>
+      </div>
+
+      <!-- Pay composition explanation -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <button @click="showExplanation=!showExplanation"
+          class="w-full flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-slate-900">
+          <span class="flex items-center gap-2">
+            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Jak se plat skládá?
+          </span>
+          <svg class="h-4 w-4 transition-transform" :class="showExplanation?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="showExplanation" x-transition class="mt-3 text-sm text-slate-600 space-y-3">
+          <div class="bg-slate-50 rounded-lg p-3 border-l-4 border-slate-400">
+            <p class="font-semibold text-slate-800 mb-1">1. Tarifní plat</p>
+            <p>Zákonem stanovená základní složka. Závisí na <strong>platové třídě</strong> (1–16) a <strong>platovém stupni</strong> (dle let praxe). Každý zaměstnanec ve stejné třídě a stupni dostává identickou částku.</p>
+          </div>
+          <div class="rounded-lg p-3 border-l-4" style="background:#EBF2FB;border-color:#2B5DAA">
+            <p class="font-semibold text-slate-800 mb-1">2. Osobní příplatek</p>
+            <p>Pohyblivá složka za individuální výkon dle hodnocení. <strong>Standardní i klíčová místa</strong>: 0–100 % max. tarifu třídy.</p>
+            <p class="text-xs text-slate-500 mt-1">Klíčová místa: finance, IT, právo, audit, zdravotnictví, veřejné zakázky, HR – třída 12 a výše (§ 178 zák. 234/2014 Sb.).</p>
+          </div>
+          <div x-show="selectedJob?.is_predstaveny" class="bg-teal-50 rounded-lg p-3 border-l-4 border-teal-500">
+            <p class="font-semibold text-slate-800 mb-1">3. Příplatek za vedení</p>
+            <p>Povinný pro vedoucí zaměstnance, závisí na funkci a kategorii úřadu:</p>
+            <ul class="mt-1.5 space-y-0.5 text-xs">
+              <li>• Vedoucí oddělení: 10–30 % max. tarifu</li>
+              <li>• Ředitel odboru: 15–40 %</li>
+              <li>• Ředitel sekce / Vrchní ředitel sekce: 25–50 %</li>
+              <li>• Vedoucí sl. úřadu / Státní tajemník: 30–60 %</li>
+            </ul>
+          </div>
+          <div x-show="selectedJob?.klicove_lze||selectedJob?.klicove_priznak" class="bg-amber-50 rounded-lg p-3 border-l-4 border-amber-400">
+            <p class="font-semibold text-slate-800 mb-1">Klíčové místo</p>
+            <p>Tarifní plat může být až <strong>dvojnásobek</strong> standardního tarifu pro danou kombinaci třídy a praxe. Osobní příplatek může stejně jako u standardních pozic dosáhnout <strong>0–100 % max. tarifu třídy</strong>. Celkový plat tak může být výrazně vyšší než u srovnatelné pozice ve stejné třídě.</p>
+            <p x-show="selectedJob?.klicove_priznak" class="mt-1 text-xs font-medium text-amber-700">Toto místo je v systemizaci označeno jako klíčové.</p>
+          </div>
+          <p class="text-xs text-slate-400 italic">NV č. 304/2014 Sb., příloha č. 2 vyhlášky MV. Data ze systemizace ISoSS.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div><!-- end flex centering -->
+  </div><!-- end scroll container -->
+</div>
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════════════════════ -->
+<footer class="border-t border-slate-200 mt-4 py-6 text-center text-xs text-slate-400 bg-white">
+  Data: <a href="https://portal.isoss.gov.cz/" class="text-gov hover:underline" target="_blank">ISoSS</a>
+  · Platové tarify dle NV č. 304/2014 Sb.
+  · Tato stránka není oficiálním zdrojem dat státní správy.
+</footer>
+
+<!-- ═══ JAVASCRIPT ═══════════════════════════════════════════════════════════ -->
+<script>
+// ── Skupiny úřadů & Resorty ────────────────────────────────────────────────
+const _S = (...names) => new Set(names);
+
+const SKUPINY_DEF = [
+  { id:'minist',   label:'Ministerstva a ÚV', urady: _S(
+    'Ministerstvo dopravy','Ministerstvo financí','Ministerstvo kultury',
+    'Ministerstvo obrany','Ministerstvo pro místní rozvoj',
+    'Ministerstvo práce a sociálních věcí','Ministerstvo průmyslu a obchodu',
+    'Ministerstvo spravedlnosti','Ministerstvo vnitra','Ministerstvo zahraničních věcí',
+    'Ministerstvo zdravotnictví','Ministerstvo zemědělství',
+    'Ministerstvo školství, mládeže a tělovýchovy','Ministerstvo životního prostředí',
+    'Úřad vlády ČR')},
+  { id:'ustredni', label:'Ostatní ústřední úřady', urady: _S(
+    'Český statistický úřad','Český telekomunikační úřad','Český úřad zeměměřický a katastrální',
+    'Český báňský úřad','Digitální a informační agentura','Energetický regulační úřad',
+    'Generální finanční ředitelství','Národní sportovní agentura',
+    'Rada pro rozhlasové a televizní vysílání','Správa státních hmotných rezerv',
+    'Státní úřad pro jadernou bezpečnost','Státní úřad inspekce práce',
+    'Úřad pro dohled nad hospodařením politických stran a politických hnutí',
+    'Úřad pro ochranu hospodářské soutěže','Úřad pro ochranu osobních údajů',
+    'Úřad průmyslového vlastnictví')},
+  { id:'katastr',  label:'Katastrální úřady', urady: _S(
+    'Český úřad zeměměřický a katastrální','Zeměměřický úřad',
+    'Zeměměřický a katastrální inspektorát v Brně','Zeměměřický a katastrální inspektorát v Liberci',
+    'Zeměměřický a katastrální inspektorát v Opavě','Zeměměřický a katastrální inspektorát v Plzni',
+    'Zeměměřický a katastrální inspektorát v Praze',
+    'Katastrální úřad pro Jihomoravský kraj','Katastrální úřad pro Jihočeský kraj',
+    'Katastrální úřad pro Karlovarský kraj','Katastrální úřad pro Královéhradecký kraj',
+    'Katastrální úřad pro Liberecký kraj','Katastrální úřad pro Moravskoslezský kraj',
+    'Katastrální úřad pro Olomoucký kraj','Katastrální úřad pro Pardubický kraj',
+    'Katastrální úřad pro Plzeňský kraj','Katastrální úřad pro Středočeský kraj',
+    'Katastrální úřad pro Vysočinu','Katastrální úřad pro Zlínský kraj',
+    'Katastrální úřad pro hlavní město Prahu','Katastrální úřad pro Ústecký kraj')},
+  { id:'ssz',      label:'Správy sociálního zabezpečení', urady: _S(
+    'Česká správa sociálního zabezpečení',
+    'Územní správa sociálního zabezpečení pro Jihočeský kraj, Plzeňský kraj a Karlovarský kraj',
+    'Územní správa sociálního zabezpečení pro Kraj Vysočina, Jihomoravský kraj a Zlínský kraj',
+    'Územní správa sociálního zabezpečení pro Moravskoslezský kraj a Olomoucký kraj',
+    'Územní správa sociálního zabezpečení pro Ústecký kraj, Liberecký kraj, Královéhradecký kraj a Pardubický kraj')},
+  { id:'financni', label:'Finanční úřady', urady: _S(
+    'Generální finanční ředitelství','Odvolací finanční ředitelství','Specializovaný finanční úřad',
+    'Finanční analytický úřad',
+    'Finanční úřad pro Jihomoravský kraj','Finanční úřad pro Jihočeský kraj',
+    'Finanční úřad pro Karlovarský kraj','Finanční úřad pro Kraj Vysočina',
+    'Finanční úřad pro Královéhradecký kraj','Finanční úřad pro Liberecký kraj',
+    'Finanční úřad pro Moravskoslezský kraj','Finanční úřad pro Olomoucký kraj',
+    'Finanční úřad pro Pardubický kraj','Finanční úřad pro Plzeňský kraj',
+    'Finanční úřad pro Středočeský kraj','Finanční úřad pro Zlínský kraj',
+    'Finanční úřad pro hlavní město Prahu','Finanční úřad pro Ústecký kraj')},
+  { id:'banske',   label:'Báňské úřady', urady: _S(
+    'Český báňský úřad',
+    'Obvodní báňský úřad pro území Hlavního města Prahy a kraje Středočeského',
+    'Obvodní báňský úřad pro území kraje Ústeckého',
+    'Obvodní báňský úřad pro území krajů Jihomoravského a Zlínského',
+    'Obvodní báňský úřad pro území krajů Královéhradeckého, Pardubického, Libereckého a Vysočina',
+    'Obvodní báňský úřad pro území krajů Moravskoslezského a Olomouckého',
+    'Obvodní báňský úřad pro území krajů Plzeňského a Jihočeského')},
+  { id:'hygien',   label:'Hygienické stanice', urady: _S(
+    'Hygienická stanice hlavního města Prahy se sídlem v Praze',
+    'Krajská hygienická stanice Jihomoravského kraje se sídlem v Brně',
+    'Krajská hygienická stanice Jihočeského kraje se sídlem v Českých Budějovicích',
+    'Krajská hygienická stanice Karlovarského kraje se sídlem v Karlových Varech',
+    'Krajská hygienická stanice Královéhradeckého kraje se sídlem v Hradci',
+    'Krajská hygienická stanice Libereckého kraje se sídlem v Liberci',
+    'Krajská hygienická stanice Moravskoslezského kraje se sídlem v Ostravě',
+    'Krajská hygienická stanice Olomouckého kraje se sídlem v Olomouci',
+    'Krajská hygienická stanice Pardubického kraje se sídlem v Pardubicích',
+    'Krajská hygienická stanice Plzeňského kraje se sídlem v Plzni',
+    'Krajská hygienická stanice Středočeského kraje se sídlem v Praze',
+    'Krajská hygienická stanice Zlínského kraje se sídlem ve Zlíně',
+    'Krajská hygienická stanice kraje Vysočina se sídlem v Jihlavě',
+    'Krajská hygienická stanice Ústeckého kraje se sídlem v Ústí nad Labem')},
+  { id:'ostatni',  label:'Ostatní', urady: null },
+];
+
+const RESORTY_DEF = [
+  { id:'uv',    label:'Úřad vlády ČR', urady: _S('Úřad vlády ČR')},
+  { id:'nsa',   label:'Národní sportovní agentura', urady: _S('Národní sportovní agentura')},
+  { id:'dia',   label:'Digitální a informační agentura', urady: _S('Digitální a informační agentura')},
+  { id:'mzv',   label:'Ministerstvo zahraničních věcí', urady: _S(
+    'Ministerstvo zahraničních věcí','Úřad pro mezinárodněprávní ochranu dětí')},
+  { id:'mo',    label:'Ministerstvo obrany', urady: _S(
+    'Ministerstvo obrany',
+    'KVV Brno','KVV Jihlava','KVV Karlovy Vary','KVV Olomouc','KVV Ostrava',
+    'KVV Praha – Středočeský kraj','KVV Zlín','KVV hlavní město Praha','KVV Ústí nad Labem',
+    'KVV České Budějovice',
+    'Újezdní úřad Boletice','Újezdní úřad Březina','Újezdní úřad Hradiště','Újezdní úřad Libavá',
+    'Úřad pro obrannou standardizaci, katalogizaci a státní ověřování jakosti')},
+  { id:'mf',    label:'Ministerstvo financí', urady: _S(
+    'Ministerstvo financí','Generální finanční ředitelství','Odvolací finanční ředitelství',
+    'Specializovaný finanční úřad','Finanční analytický úřad',
+    'Finanční úřad pro Jihomoravský kraj','Finanční úřad pro Jihočeský kraj',
+    'Finanční úřad pro Karlovarský kraj','Finanční úřad pro Kraj Vysočina',
+    'Finanční úřad pro Královéhradecký kraj','Finanční úřad pro Liberecký kraj',
+    'Finanční úřad pro Moravskoslezský kraj','Finanční úřad pro Olomoucký kraj',
+    'Finanční úřad pro Pardubický kraj','Finanční úřad pro Plzeňský kraj',
+    'Finanční úřad pro Středočeský kraj','Finanční úřad pro Zlínský kraj',
+    'Finanční úřad pro hlavní město Prahu','Finanční úřad pro Ústecký kraj')},
+  { id:'mpsv',  label:'Ministerstvo práce a sociálních věcí', urady: _S(
+    'Ministerstvo práce a sociálních věcí',
+    'Česká správa sociálního zabezpečení',
+    'Územní správa sociálního zabezpečení pro Jihočeský kraj, Plzeňský kraj a Karlovarský kraj',
+    'Územní správa sociálního zabezpečení pro Kraj Vysočina, Jihomoravský kraj a Zlínský kraj',
+    'Územní správa sociálního zabezpečení pro Moravskoslezský kraj a Olomoucký kraj',
+    'Územní správa sociálního zabezpečení pro Ústecký kraj, Liberecký kraj, Královéhradecký kraj a Pardubický kraj',
+    'Úřad práce ČR','Státní úřad inspekce práce',
+    'Oblastní inspektorát práce pro Jihomoravský a Zlínský kraj',
+    'Oblastní inspektorát práce pro Jihočeský kraj a Vysočinu',
+    'Oblastní inspektorát práce pro Královéhradecký a Pardubický kraj',
+    'Oblastní inspektorát práce pro Moravskoslezský a Olomoucký kraj',
+    'Oblastní inspektorát práce pro Plzeňský a Karlovarský kraj',
+    'Oblastní inspektorát práce pro Středočeský kraj',
+    'Oblastní inspektorát práce pro hlavní město Prahu',
+    'Oblastní inspektorát práce pro Ústecký a Liberecký kraj',
+    'Institut posuzování zdravotního stavu')},
+  { id:'mv',    label:'Ministerstvo vnitra', urady: _S(
+    'Ministerstvo vnitra','Archiv bezpečnostních složek')},
+  { id:'mzp',   label:'Ministerstvo životního prostředí', urady: _S(
+    'Ministerstvo životního prostředí','Česká inspekce životního prostředí',
+    'Agentura ochrany přírody a krajiny ČR','Státní fond životního prostředí')},
+  { id:'mmr',   label:'Ministerstvo pro místní rozvoj', urady: _S(
+    'Ministerstvo pro místní rozvoj','Centrum pro regionální rozvoj České republiky')},
+  { id:'ctu',   label:'Český telekomunikační úřad', urady: _S('Český telekomunikační úřad')},
+  { id:'mpo',   label:'Ministerstvo průmyslu a obchodu', urady: _S(
+    'Ministerstvo průmyslu a obchodu','Česká obchodní inspekce',
+    'Úřad pro technickou normalizaci, metrologii a státní zkušebnictví',
+    'Agentura pro podnikání a inovace','Energetický regulační úřad',
+    'Státní energetická inspekce','Puncovní úřad','Český úřad pro zkoušení zbraní a střeliva',
+    'Český báňský úřad',
+    'Obvodní báňský úřad pro území Hlavního města Prahy a kraje Středočeského',
+    'Obvodní báňský úřad pro území kraje Ústeckého',
+    'Obvodní báňský úřad pro území krajů Jihomoravského a Zlínského',
+    'Obvodní báňský úřad pro území krajů Královéhradeckého, Pardubického, Libereckého a Vysočina',
+    'Obvodní báňský úřad pro území krajů Moravskoslezského a Olomouckého',
+    'Obvodní báňský úřad pro území krajů Plzeňského a Jihočeského')},
+  { id:'md',    label:'Ministerstvo dopravy', urady: _S(
+    'Ministerstvo dopravy','Drážní úřad','Drážní inspekce','Úřad pro civilní letectví',
+    'Státní plavební správa','Státní fond dopravní infrastruktury',
+    'Dopravní a energetický stavební úřad')},
+  { id:'mze',   label:'Ministerstvo zemědělství', urady: _S(
+    'Ministerstvo zemědělství','Státní zemědělský intervenční fond',
+    'Ústřední kontrolní a zkušební ústav zemědělský','Státní veterinární správa',
+    'Státní zemědělská a potravinářská inspekce','Česká plemenářská inspekce',
+    'Státní pozemkový úřad','Ústav pro státní kontrolu veterinárních biopreparátů a léčiv')},
+  { id:'msmt',  label:'Ministerstvo školství, mládeže a tělovýchovy', urady: _S(
+    'Ministerstvo školství, mládeže a tělovýchovy','Česká školní inspekce')},
+  { id:'mk',    label:'Ministerstvo kultury', urady: _S(
+    'Ministerstvo kultury','Národní archiv',
+    'Státní oblastní archiv v Hradci Králové','Státní oblastní archiv v Litoměřicích',
+    'Státní oblastní archiv v Plzni','Státní oblastní archiv v Praze',
+    'Státní oblastní archiv v Třeboni','Moravský zemský archiv v Brně','Zemský archiv v Opavě')},
+  { id:'mzd',   label:'Ministerstvo zdravotnictví', urady: _S(
+    'Ministerstvo zdravotnictví','Státní ústav pro kontrolu léčiv',
+    'Hygienická stanice hlavního města Prahy se sídlem v Praze',
+    'Krajská hygienická stanice Jihomoravského kraje se sídlem v Brně',
+    'Krajská hygienická stanice Jihočeského kraje se sídlem v Českých Budějovicích',
+    'Krajská hygienická stanice Karlovarského kraje se sídlem v Karlových Varech',
+    'Krajská hygienická stanice Královéhradeckého kraje se sídlem v Hradci',
+    'Krajská hygienická stanice Libereckého kraje se sídlem v Liberci',
+    'Krajská hygienická stanice Moravskoslezského kraje se sídlem v Ostravě',
+    'Krajská hygienická stanice Olomouckého kraje se sídlem v Olomouci',
+    'Krajská hygienická stanice Pardubického kraje se sídlem v Pardubicích',
+    'Krajská hygienická stanice Plzeňského kraje se sídlem v Plzni',
+    'Krajská hygienická stanice Středočeského kraje se sídlem v Praze',
+    'Krajská hygienická stanice Zlínského kraje se sídlem ve Zlíně',
+    'Krajská hygienická stanice kraje Vysočina se sídlem v Jihlavě',
+    'Krajská hygienická stanice Ústeckého kraje se sídlem v Ústí nad Labem')},
+  { id:'msp',   label:'Ministerstvo spravedlnosti', urady: _S('Ministerstvo spravedlnosti')},
+  { id:'cuzk',  label:'Český úřad zeměměřický a katastrální', urady: _S(
+    'Český úřad zeměměřický a katastrální','Zeměměřický úřad',
+    'Zeměměřický a katastrální inspektorát v Brně','Zeměměřický a katastrální inspektorát v Liberci',
+    'Zeměměřický a katastrální inspektorát v Opavě','Zeměměřický a katastrální inspektorát v Plzni',
+    'Zeměměřický a katastrální inspektorát v Praze',
+    'Katastrální úřad pro Jihomoravský kraj','Katastrální úřad pro Jihočeský kraj',
+    'Katastrální úřad pro Karlovarský kraj','Katastrální úřad pro Královéhradecký kraj',
+    'Katastrální úřad pro Liberecký kraj','Katastrální úřad pro Moravskoslezský kraj',
+    'Katastrální úřad pro Olomoucký kraj','Katastrální úřad pro Pardubický kraj',
+    'Katastrální úřad pro Plzeňský kraj','Katastrální úřad pro Středočeský kraj',
+    'Katastrální úřad pro Vysočinu','Katastrální úřad pro Zlínský kraj',
+    'Katastrální úřad pro hlavní město Prahu','Katastrální úřad pro Ústecký kraj')},
+  { id:'csu',   label:'Český statistický úřad', urady: _S('Český statistický úřad')},
+  { id:'upi',   label:'Úřad průmyslového vlastnictví', urady: _S('Úřad průmyslového vlastnictví')},
+  { id:'uohs',  label:'Úřad pro ochranu hospodářské soutěže', urady: _S('Úřad pro ochranu hospodářské soutěže')},
+  { id:'uoou',  label:'Úřad pro ochranu osobních údajů', urady: _S('Úřad pro ochranu osobních údajů')},
+  { id:'rrtv',  label:'Rada pro rozhlasové a televizní vysílání', urady: _S('Rada pro rozhlasové a televizní vysílání')},
+  { id:'sshz',  label:'Správa státních hmotných rezerv', urady: _S('Správa státních hmotných rezerv')},
+  { id:'sujb',  label:'Státní úřad pro jadernou bezpečnost', urady: _S('Státní úřad pro jadernou bezpečnost')},
+  { id:'uhpsph',label:'Úřad pro dohled nad hospodařením polit. stran', urady: _S('Úřad pro dohled nad hospodařením politických stran a politických hnutí')},
+];
+
+const PAY_SCALE    = 220000;
+const PRAXE_STEPS  = [1,2,4,6,9,12,15,19,23,27,32,null];
+const PRAXE_LABELS = ['do 1 roku','1–2 roky','2–4 roky','4–6 let','6–9 let',
+                      '9–12 let','12–15 let','15–19 let','19–23 let','23–27 let',
+                      '27–32 let','32+ let'];
+const DEFAULT_PRAXE_IDX = 4;
+
+// Standard Czech civil service grade names by platova_trida
+const GRADE_NAMES = {
+  1:'Administrativa', 2:'Administrativa', 3:'Referent', 4:'Referent', 5:'Odborný referent',
+  6:'Odborný referent', 7:'Vrchní referent', 8:'Inspektor', 9:'Odborný inspektor',
+  10:'Rada', 11:'Odborný rada', 12:'Vládní rada', 13:'Ministerský rada',
+  14:'Vrchní vládní rada', 15:'Vrchní vládní rada', 16:'Vrchní vládní rada',
+};
+
+// 534 and 535 merged into one checkbox
+const MGMT_LEVELS = [
+  { code:'radovy',   label:'Řadový zaměstnanec' },
+  { code:'515',      label:'Vedoucí oddělení' },
+  { code:'525',      label:'Ředitel odboru' },
+  { code:'527',      label:'Vedoucí zastupitelského úřadu' },
+  { code:'534_535',  label:'(Vrchní) ředitel sekce' },
+  { code:'539_549',  label:'(Nejvyšší) státní tajemník' },
+  { code:'545',      label:'Vedoucí služebního úřadu' },
+];
+
+function jobsApp() {
+  return {
+    PAY_SCALE, PRAXE_STEPS, PRAXE_LABELS, MGMT_LEVELS,
+    jobs: [], loading: true, error: null,
+
+    filters: {
+      search: '',
+      urady: [], mista: [], obory: [], skupinyUradu: [],
+      tridasMin: 6, tridasMax: 16,
+      onlyAktualni: true, onlyKlicove: false,
+      vedeniLevels: [],
+    },
+    sortKey: 'pay_desc',
+    praxeIdx: DEFAULT_PRAXE_IDX,
+    currentPage: 1, perPage: 24,
+    _filteredJobs: [], filterPending: false, _filterTimer: null,
+
+    // Modal
+    selectedJob: null, selectedSims: null,
+    simsLoading: false, modalPraxeIdx: DEFAULT_PRAXE_IDX,
+    showExplanation: false, linkCopied: false,
+
+    async init() {
+      try {
+        const r = await fetch('data-export/app_data.json');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        this.jobs = await r.json();
+        this._applyFilters();
+        this.$watch('filters',  () => this._scheduleFilter());
+        this.$watch('sortKey',  () => this._scheduleFilter());
+        const jobParam = new URLSearchParams(location.search).get('job');
+        if(jobParam) { const j=this.jobs.find(x=>x.id_nodate===jobParam); if(j) this.openJob(j); }
+      } catch(e) { this.error = e.message; }
+      finally { this.loading = false; }
+    },
+
+    // ── Dimension lists ────────────────────────────────────────────────────
+    get availableSkupiny() {
+      const namedSets = SKUPINY_DEF.filter(s=>s.urady!=null).map(s=>s.urady);
+      const allNamed  = new Set(namedSets.flatMap(s=>[...s]));
+      return SKUPINY_DEF.map(s => {
+        const count = s.urady===null
+          ? this.jobs.filter(j=>j.urad_nazev&&!allNamed.has(j.urad_nazev)).length
+          : this.jobs.filter(j=>s.urady.has(j.urad_nazev||'')).length;
+        return {...s, count};
+      }).filter(s=>s.count>0);
+    },
+    get availableResorty() {
+      return RESORTY_DEF.map(s => ({
+        ...s,
+        count: this.jobs.filter(j=>s.urady.has(j.urad_nazev||'')).length,
+      })).filter(s=>s.count>0);
+    },
+    get availableUrady() {
+      const m = new Map();
+      this.jobs.forEach(j => { const n=j.urad_nazev||''; m.set(n,(m.get(n)||0)+1); });
+      return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count}));
+    },
+
+    // Místo práce: three sections — kraje, okresy, obce
+    get availableMista() {
+      const kraje=new Map(), okresy=new Map(), obce=new Map();
+      this.jobs.forEach(j => {
+        if (j.kraj_nazev)  kraje.set(j.kraj_nazev,  (kraje.get(j.kraj_nazev)||0)+1);
+        if (j.okres_nazev) okresy.set(j.okres_nazev,(okresy.get(j.okres_nazev)||0)+1);
+        if (j.obec_nazev)  obce.set(j.obec_nazev,   (obce.get(j.obec_nazev)||0)+1);
+      });
+      const mk = n => Array.from(n.entries()).sort((a,b)=>b[1]-a[1]);
+      return {
+        kraje:  mk(kraje).map( ([name,count])=>({id:'kraj:'+name,  name, count, type:'kraj'})),
+        okresy: mk(okresy).map(([name,count])=>({id:'okres:'+name, name, count, type:'okres'})),
+        obce:   mk(obce).map(  ([name,count])=>({id:'obec:'+name,  name, count, type:'obec'})),
+      };
+    },
+
+    mistaLabel(id) {
+      const c = id.indexOf(':');
+      return id.slice(c+1);
+    },
+    mistaTypeLabel(id) {
+      const c = id.indexOf(':');
+      const map = { kraj:'kraj', okres:'okres', obec:'obec' };
+      return map[id.slice(0,c)] || '';
+    },
+
+    get availableObory() {
+      const m = new Map();
+      this.jobs.forEach(j => {
+        const ids=j.obory_ids||[], names=j.obory_nazvy||[];
+        ids.forEach((id,i) => {
+          if (!m.has(id)) m.set(id,{id,name:names[i]||id,count:0});
+          m.get(id).count++;
+        });
+      });
+      return Array.from(m.values()).sort((a,b)=>b.count-a.count);
+    },
+    oborName(id) { const o=this.availableObory.find(o=>o.id===id); return o?o.name:id; },
+
+    selectAllMinistries() {
+      const names = this.availableUrady
+        .filter(u => /minist/i.test(u.name) || u.name==='Úřad vlády ČR')
+        .map(u => u.name);
+      this.filters.urady = [...new Set([...this.filters.urady, ...names])];
+      this.resetPage();
+    },
+
+    // ── Filtered + sorted ─────────────────────────────────────────────────
+    get filteredJobs() { return this._filteredJobs; },
+
+    _scheduleFilter() {
+      this.filterPending = true;
+      clearTimeout(this._filterTimer);
+      this._filterTimer = setTimeout(() => this._applyFilters(), 0);
+    },
+
+    _applyFilters() {
+      let r = this.jobs;
+      const q = this.filters.search.trim().toLowerCase();
+      if (q) r = r.filter(j =>
+        (j.nazev||'').toLowerCase().includes(q) ||
+        (j.popis||'').toLowerCase().includes(q) ||
+        (j.urad_nazev||'').toLowerCase().includes(q) ||
+        (j.obec_nazev||'').toLowerCase().includes(q)
+      );
+
+      if (this.filters.urady.length)
+        r = r.filter(j => this.filters.urady.includes(j.urad_nazev));
+
+      if (this.filters.mista.length)
+        r = r.filter(j => this.filters.mista.some(m => {
+          const col = m.indexOf(':'), type=m.slice(0,col), name=m.slice(col+1);
+          if (type==='kraj')  return j.kraj_nazev===name;
+          if (type==='okres') return j.okres_nazev===name;
+          if (type==='obec')  return j.obec_nazev===name;
+          return false;
+        }));
+
+      if (this.filters.obory.length)
+        r = r.filter(j => (j.obory_ids||[]).some(id=>this.filters.obory.includes(id)));
+
+      const tMin=+this.filters.tridasMin||1, tMax=+this.filters.tridasMax||16;
+      r = r.filter(j => j.platova_trida>=tMin && j.platova_trida<=tMax);
+      if (this.filters.onlyAktualni) r = r.filter(j => j.aktualni);
+      if (this.filters.onlyKlicove)  r = r.filter(j => j.klicove_lze||j.klicove_priznak);
+
+      if (this.filters.skupinyUradu.length) {
+        const namedSets = SKUPINY_DEF.filter(s=>s.urady!=null).map(s=>s.urady);
+        const allNamed  = new Set(namedSets.flatMap(s=>[...s]));
+        const allowed = new Set();
+        for (const sel of this.filters.skupinyUradu) {
+          const sk = SKUPINY_DEF.find(s=>s.id===sel);
+          if (sk) {
+            if (sk.urady===null) this.jobs.forEach(j=>{ if(j.urad_nazev&&!allNamed.has(j.urad_nazev)) allowed.add(j.urad_nazev); });
+            else sk.urady.forEach(u=>allowed.add(u));
+            continue;
+          }
+          const re = RESORTY_DEF.find(s=>s.id===sel);
+          if (re) re.urady.forEach(u=>allowed.add(u));
+        }
+        r = r.filter(j=>allowed.has(j.urad_nazev||''));
+      }
+
+      if (this.filters.vedeniLevels.length) {
+        r = r.filter(j => {
+          const code = String(j.predstaveny||'');
+          const normalized = (code==='534'||code==='535') ? '534_535' : (code==='539'||code==='549') ? '539_549' : (j.is_predstaveny ? code : 'radovy');
+          return this.filters.vedeniLevels.includes(normalized);
+        });
+      }
+
+      const pi = this.praxeIdx;
+      this._filteredJobs = [...r].sort((a,b) => {
+        switch(this.sortKey) {
+          case 'pay_desc':   return (this._lo(b,pi))-(this._lo(a,pi));
+          case 'pay_asc':    return (this._lo(a,pi))-(this._lo(b,pi));
+          case 'trida_desc': return b.platova_trida-a.platova_trida;
+          case 'trida_asc':  return a.platova_trida-b.platova_trida;
+          case 'urad':  return (a.urad_nazev||'').localeCompare(b.urad_nazev||'','cs');
+          case 'nazev': return (a.nazev||'').localeCompare(b.nazev||'','cs');
+          default: return 0;
+        }
+      });
+      this.currentPage = 1;
+      this.filterPending = false;
+    },
+    _lo(job,idx) { const a=job.pay_arr; return (a&&a[idx]&&a[idx][1])||0; },
+
+    get pagedJobs()  { const s=(this.currentPage-1)*this.perPage; return this.filteredJobs.slice(s,s+this.perPage); },
+    get totalPages() { return Math.max(1,Math.ceil(this.filteredJobs.length/this.perPage)); },
+    get pageNumbers() {
+      const n=this.totalPages,c=this.currentPage;
+      if(n<=7) return Array.from({length:n},(_,i)=>i+1);
+      const pg=[1]; if(c>3) pg.push('…');
+      for(let i=Math.max(2,c-1);i<=Math.min(n-1,c+1);i++) pg.push(i);
+      if(c<n-2) pg.push('…'); pg.push(n);
+      return pg;
+    },
+
+    // ── Card helpers ───────────────────────────────────────────────────────
+    cardPay(job) {
+      const arr=job.pay_arr;
+      if(!arr||!arr[this.praxeIdx]) return null;
+      const [min,lo,hi,max]=arr[this.praxeIdx];
+      if(min==null&&lo==null) return null;
+      return {min,lo,hi,max:max??job.pay_max};
+    },
+
+    // Management jobs: heading = "Ředitel odboru — Odbor informatiky"
+    jobHeading(job) {
+      if (!job) return '';
+      if (job.is_predstaveny && job.predstaveny_nazev && job.predstaveny_nazev!=='není představený') {
+        const role = this.capFirst(job.predstaveny_nazev);
+        return job.popis ? `${role} \u2014 ${job.popis}` : role;
+      }
+      return (job.nazev||'').replace(/^\d{4,6}(\.\d+)?\s*[-\u2013]\s*/,'').trim();
+    },
+
+    cleanTitle(nazev) {
+      return (nazev||'').replace(/^\d{4,6}(\.\d+)?\s*[-\u2013]\s*/,'').trim();
+    },
+
+    gradeName(trida) { return GRADE_NAMES[trida] || `Třída ${trida}`; },
+    capFirst(s)      { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; },
+
+    // ── Modal ──────────────────────────────────────────────────────────────
+    async openJob(job) {
+      this.selectedJob=job; this.selectedSims=null;
+      this.simsLoading=true; this.showExplanation=false; this.linkCopied=false;
+      this.modalPraxeIdx=this.praxeIdx;
+      document.body.classList.add('modal-open');
+      history.replaceState(null,'',`?job=${encodeURIComponent(job.id_nodate)}`);
+      try {
+        const r=await fetch(`data-export/app_sims/sims__${job.id_nodate}.json`);
+        if(r.ok) this.selectedSims=await r.json();
+      } catch(e) {}
+      finally { this.simsLoading=false; }
+    },
+    closeModal() {
+      this.selectedJob=null; this.selectedSims=null;
+      document.body.classList.remove('modal-open');
+      history.replaceState(null,'',location.pathname);
+    },
+    copyJobLink() {
+      navigator.clipboard.writeText(location.href).then(()=>{
+        this.linkCopied=true;
+        setTimeout(()=>{ this.linkCopied=false; },2000);
+      });
+    },
+
+    // ── Salary scenarios ───────────────────────────────────────────────────
+    get simsAtStep() {
+      if(!this.selectedSims) return [];
+      const target=PRAXE_STEPS[this.modalPraxeIdx];
+      return this.selectedSims.filter(r=>target===null?r.praxe_do==null:r.praxe_do===target);
+    },
+    get salaryScenarios() {
+      const rows=this.simsAtStep; if(!rows.length) return [];
+      const sc=[];
+      // base = min vedení row; baseM = max vedení row (only exists for management positions)
+      const base=rows.find(r=>!r.expert&&!r.key&&r.ved==='min');
+      const baseM=rows.find(r=>!r.expert&&!r.key&&r.ved==='max');
+      const hasVedeni=baseM!=null&&base!=null&&(baseM.min??0)>(base.min??0);
+      // 1. Tarifní plat: raw tariff only (no management supplement, no osobní).
+      // base.tarif is present only after pipeline regen. For managers without it, skip
+      // the tarif bar rather than show a value that silently includes vedeni_min.
+      const hasTarif = base?.tarif != null;
+      const tarif = hasTarif ? base.tarif : base?.min;
+      if(tarif!=null) sc.push({id:'tarif',
+        label: hasTarif||!hasVedeni ? 'Tarifní plat' : 'Minimum',
+        desc: hasVedeni
+          ? (hasTarif ? 'Zákonná základní složka dle třídy a stupně praxe — bez osobního příplatku a příplatku za vedení' : 'Tarifní plat + nejnižší možný příplatek za vedení')
+          : 'Zákonná základní složka dle třídy a stupně praxe — bez osobního příplatku',
+        lo:tarif,hi:tarif,color:'#94a3b8',rangeLabel:this.czk(tarif)});
+      // 2. Příplatek za vedení (management only) — lo = tarif if available, else base.min
+      if(hasVedeni&&baseM?.min!=null){
+        const vedeniLo = hasTarif ? tarif : base.min;
+        sc.push({id:'vedeni',label:'Příplatek za vedení',
+          desc:'Povinný příplatek pro vedoucí zaměstnance — rozsah závisí na funkci a kategorii úřadu. Zahrnuto ve všech dalších hodnotách níže.',
+          lo:vedeniLo,hi:baseM.min,color:'#0d9488',
+          rangeLabel:this.czk(base.min)+' – '+this.czk(baseM.min)});
+      }
+      // 3. Typical osobní příplatek range; hi uses max vedení row for management
+      const typLo=base?.typicallower;
+      const typHi=(baseM??base)?.typicalmax??(baseM??base)?.typicalmid;
+      if(typLo!=null&&typHi!=null)
+        sc.push({id:'typical',label:'Dobré–velmi dobré hodnocení',
+          desc: hasVedeni ? 'Tarif + příplatek za vedení + osobní příplatek za dobré hodnocení (cca 14–30 % max. tarifu)' : 'Tarif + osobní příplatek za dobré hodnocení (cca 14–24 % max. tarifu)',
+          lo:typLo,hi:typHi,color:'#2B5DAA',
+          rangeLabel:this.czk(typLo)+' – '+this.czk(typHi)});
+      // 4. Max osobní příplatek: up to 100 % of tarif_max; uses max vedení for management
+      const maxPay=(baseM??base)?.max;
+      if(maxPay!=null&&maxPay!==typHi)
+        sc.push({id:'max',label:'Vynikající hodnocení (100 % max. tarifu)',
+          desc: hasVedeni ? 'Tarif + příplatek za vedení (max.) + osobní příplatek až 100 % max. tarifu třídy' : 'Tarif + osobní příplatek až 100 % max. tarifu třídy',
+          lo:maxPay,hi:maxPay,color:'#16386B',rangeLabel:this.czk(maxPay)});
+      // 4. Klíčové místo: tarif × 2, osobní příplatek 0–100 % tarif_max
+      // tarif_max is derived: base.max = tarif + vedeni_min + tarif_max*0.5, base.min = tarif + vedeni_min
+      const key=rows.find(r=>!r.expert&&r.key&&r.ved==='min');
+      if(key?.maxmultminosobko!=null){
+        const tarif_max_est=base!=null?(base.max-base.min)*2:0;
+        const keyHi=key.maxmultminosobko+tarif_max_est;
+        sc.push({id:'key',label:'Klíčové místo — max. osobní příplatek',
+          desc:'Tarifní plat × 2 + osobní příplatek 0–100 % max. tarifu třídy (§ 178 zák. 234/2014 Sb.)',
+          lo:key.maxmultminosobko,hi:keyHi,color:'#f59e0b',
+          rangeLabel:tarif_max_est>0?this.czk(key.maxmultminosobko)+' – '+this.czk(keyHi):this.czk(key.maxmultminosobko)});}
+      return sc;
+    },
+    get scenarioMax() {
+      const v=this.salaryScenarios.flatMap(s=>[s.lo,s.hi]).filter(v=>v!=null);
+      return v.length?Math.max(...v):PAY_SCALE;
+    },
+    scPct(v) { return Math.min(100,Math.max(0,v/this.scenarioMax*100)).toFixed(1); },
+
+
+    // ── Utils ──────────────────────────────────────────────────────────────
+    resetPage()  { this.currentPage=1; },
+    goPage(p)    { if(p>=1&&p<=this.totalPages){this.currentPage=p;window.scrollTo({top:0,behavior:'smooth'});} },
+    resetFilters() {
+      this.filters={search:'',urady:[],mista:[],obory:[],skupinyUradu:[],tridasMin:6,tridasMax:16,
+        onlyAktualni:false,onlyKlicove:false,vedeniLevels:[]};
+      this.praxeIdx=DEFAULT_PRAXE_IDX; this.currentPage=1;
+    },
+    czk(v) {
+      if(v==null||isNaN(v)) return '–';
+      return new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(v)+'\u00a0Kč';
+    },
+    num(v) {
+      if(v==null||isNaN(v)) return '–';
+      return new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:0}).format(v);
+    },
+    fmtDate(s) {
+      if(!s) return null;
+      const d = new Date(s);
+      if(isNaN(d)) return null;
+      return d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
+    },
+    segStyle(from,to) {
+      const l=Math.min(100,Math.max(0,from/PAY_SCALE*100));
+      const w=Math.min(100-l,Math.max(0,(to-from)/PAY_SCALE*100));
+      return `left:${l.toFixed(1)}%;width:${w.toFixed(1)}%`;
+    },
+  };
+}
+</script>
+
+</body>
+</html>

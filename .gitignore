@@ -9,7 +9,9 @@
 # Local Netlify folder
 .netlify
 
-docs
+/docs/*
+!/docs/jobs/
+!/docs/jobs/*
 data-export
 data-input/cis_*.csv
 node_modules
